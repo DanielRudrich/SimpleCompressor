@@ -35,5 +35,5 @@ The sample delay class and visualization class is taken from the IEM Plug-in Sui
 
 
 
-###### <sup>1</sup> not based on scientific data, but estimted rather subjectively.
+###### <sup>1</sup> not based on scientific data, but estimated rather subjectively.
 ###### <sup>2</sup> yeah, all of them.
