@@ -53,3 +53,14 @@ Let's take a look at what look-ahead is doing. The following figure shows the te
 The amplitude of the sine-signal nicely shows the gain-reduction over time. In the middle plot (no look-ahead) you can see that the signal levels is the same until the impulse hits the compressor. It immediately reduces the gain by 10dB, and gradually fades back to no reduction as the release-time is set to 100ms. That abrupt change in gain-reduction will result in distortions.
 
 The third plot shows two things: a general delay of 5ms, as the peak is shifted from 50ms to 55ms. However, when the original peak hits the limiter, it starts to gradually lower the gain. And exactly when the impulse appears, the gain reduction reached the necessary -10dB.
+
+
+### Visualization of the gain-reduction fade-in
+The next figure shows the gain-reduction over time for a drum onset, with and without look-ahead. The delay of the look-ahead data was compensated for visualization purposes. 
+
+![Gain-reduction comparison](gainReduction.png)
+
+As expected, we see the linear fade (as the y-axis is logarithmic) toward the peaks. The micro-movements are overwritten by the fade, as they are steeper than the fade-curve of the local peak.
+
+
+
