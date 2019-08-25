@@ -77,7 +77,7 @@ public:
 
     void prepare (const ProcessSpec& specs) override
     {
-        gainReductionComputer.prepare (specs.sampleRate, specs.maximumBlockSize);
+        gainReductionComputer.prepare (specs.sampleRate);
         sideChainBuffer.setSize (2, specs.maximumBlockSize);
     };
 

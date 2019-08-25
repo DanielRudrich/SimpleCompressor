@@ -51,7 +51,7 @@ SimpleCompressorAudioProcessorEditor::SimpleCompressorAudioProcessorEditor (Simp
     makeUp.setTextValueSuffix (" dB");
 
     addAndMakeVisible (cv);
-    startTimer (20);
+    startTimer (50);
 }
 
 SimpleCompressorAudioProcessorEditor::~SimpleCompressorAudioProcessorEditor()
@@ -113,6 +113,11 @@ void SimpleCompressorAudioProcessorEditor::resized()
 
 void SimpleCompressorAudioProcessorEditor::timerCallback()
 {
-    cv.updateCharacteristic();
+    if (processor.characteristicChanged.get())
+    {
+        processor.characteristicChanged = false;
+        cv.updateCharacteristic();
+    }
+    
     cv.repaint();
 }

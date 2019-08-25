@@ -32,7 +32,7 @@ GainReductionComputer::GainReductionComputer()
     reset();
 }
 
-void GainReductionComputer::prepare (const double sampleRate, const int blockSize)
+void GainReductionComputer::prepare (const double sampleRate)
 {
     this->sampleRate = sampleRate;
 

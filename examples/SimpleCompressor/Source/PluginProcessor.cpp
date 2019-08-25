@@ -215,9 +215,15 @@ AudioProcessorValueTreeState::ParameterLayout SimpleCompressorAudioProcessor::cr
 void SimpleCompressorAudioProcessor::parameterChanged (const String& parameterID, float newValue)
 {
     if (parameterID == "threshold")
+    {
         compressor.setThreshold (newValue);
+        characteristicChanged = true;
+    }
     else if (parameterID == "knee")
+    {
         compressor.setKnee (newValue);
+        characteristicChanged = true;
+    }
     else if (parameterID == "attack")
         compressor.setAttackTime (newValue / 1000);
     else if (parameterID == "release")
@@ -228,9 +234,13 @@ void SimpleCompressorAudioProcessor::parameterChanged (const String& parameterID
             compressor.setRatio (std::numeric_limits<float>::infinity());
         else
             compressor.setRatio (newValue);
+        characteristicChanged = true;
     }
     else if (parameterID == "makeUp")
+    {
         compressor.setMakeUpGain (newValue);
+        characteristicChanged = true;
+    }
     else
         jassertfalse;
 }

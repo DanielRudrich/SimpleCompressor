@@ -80,7 +80,7 @@ public:
     /**
      Prepares the compressor with sampleRate and expected blockSize. Make sure you call this before you do any processing!
      */
-    void prepare (const double sampleRate, const int blockSize);
+    void prepare (const double sampleRate);
 
     /**
      Resets the internal state of the compressor.

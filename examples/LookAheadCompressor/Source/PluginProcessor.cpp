@@ -116,7 +116,7 @@ void LookAheadCompressorAudioProcessor::changeProgramName (int index, const Stri
 //==============================================================================
 void LookAheadCompressorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    gainReductionComputer.prepare (sampleRate, samplesPerBlock);
+    gainReductionComputer.prepare (sampleRate);
     lookAheadFadeIn.prepare (sampleRate, samplesPerBlock);
     delay.prepare ({sampleRate, static_cast<uint32> (samplesPerBlock), 2});
 
@@ -265,9 +265,15 @@ AudioProcessorValueTreeState::ParameterLayout LookAheadCompressorAudioProcessor:
 void LookAheadCompressorAudioProcessor::parameterChanged (const String& parameterID, float newValue)
 {
     if (parameterID == "threshold")
+    {
         gainReductionComputer.setThreshold (newValue);
+        characteristicChanged = true;
+    }
     else if (parameterID == "knee")
+    {
         gainReductionComputer.setKnee (newValue);
+        characteristicChanged = true;
+    }
     else if (parameterID == "attack")
         gainReductionComputer.setAttackTime (newValue / 1000);
     else if (parameterID == "release")
@@ -278,9 +284,14 @@ void LookAheadCompressorAudioProcessor::parameterChanged (const String& paramete
             gainReductionComputer.setRatio (std::numeric_limits<float>::infinity());
         else
             gainReductionComputer.setRatio (newValue);
+
+        characteristicChanged = true;
     }
     else if (parameterID == "makeUp")
+    {
         gainReductionComputer.setMakeUpGain (newValue);
+        characteristicChanged = true;
+    }
     else
         jassertfalse;
 }

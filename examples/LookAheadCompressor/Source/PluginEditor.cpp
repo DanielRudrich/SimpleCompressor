@@ -55,7 +55,7 @@ LookAheadCompressorAudioProcessorEditor::LookAheadCompressorAudioProcessorEditor
     lookAhead.setButtonText("look-ahead processing (5 ms)");
 
     addAndMakeVisible (cv);
-    startTimer (20);
+    startTimer (50);
 }
 
 LookAheadCompressorAudioProcessorEditor::~LookAheadCompressorAudioProcessorEditor()
@@ -118,6 +118,11 @@ void LookAheadCompressorAudioProcessorEditor::resized()
 
 void LookAheadCompressorAudioProcessorEditor::timerCallback()
 {
-    cv.updateCharacteristic();
+    if (processor.characteristicChanged.get())
+    {
+        processor.characteristicChanged = false;
+        cv.updateCharacteristic();
+    }
+
     cv.repaint();
 }

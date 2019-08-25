@@ -64,6 +64,7 @@ public:
 
     GainReductionComputer& getCompressor() { return gainReductionComputer; };
 
+    Atomic<bool> characteristicChanged = true;
 private:
     AudioProcessorValueTreeState parameters;
 
