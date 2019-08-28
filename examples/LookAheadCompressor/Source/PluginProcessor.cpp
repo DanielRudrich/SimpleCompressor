@@ -121,6 +121,11 @@ void LookAheadCompressorAudioProcessor::prepareToPlay (double sampleRate, int sa
     delay.prepare ({sampleRate, static_cast<uint32> (samplesPerBlock), 2});
 
     sideChainBuffer.setSize (2, samplesPerBlock);
+
+    if (*parameters.getRawParameterValue ("lookAhead") > 0.5f)
+        setLatencySamples (static_cast<int> (0.005 * sampleRate));
+    else
+        setLatencySamples (0);
 }
 
 void LookAheadCompressorAudioProcessor::releaseResources()
