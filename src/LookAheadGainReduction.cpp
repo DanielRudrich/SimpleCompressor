@@ -19,6 +19,7 @@
 
 #include "LookAheadGainReduction.h"
 #include <cmath>
+#include <algorithm>
 
 void LookAheadGainReduction::setDelayTime (float delayTimeInSeconds)
 {

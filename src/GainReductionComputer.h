@@ -21,6 +21,7 @@
 #include <vector>
 #include <limits>
 #include <cmath>
+#include <atomic>
 
 /**
  This class acts as the side-chain path of a dynamic range compressor. It processes a given side-chain signal and computes the gain reduction samples depending on the parameters threshold, knee, attack-time, release-time, ratio, and make-up gain.
