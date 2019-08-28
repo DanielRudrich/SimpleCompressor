@@ -59,7 +59,7 @@ public:
     {
         spec = specs;
 
-        delayInSamples = delay * specs.sampleRate;
+        delayInSamples = static_cast<int> (delay * specs.sampleRate);
 
         buffer.setSize (specs.numChannels, specs.maximumBlockSize + delayInSamples);
         buffer.clear();
@@ -74,7 +74,7 @@ public:
         {
             auto abIn = context.getInputBlock();
             auto abOut = context.getOutputBlock();
-            auto L = abIn.getNumSamples();
+            auto L = static_cast<int> (abIn.getNumSamples());
             auto nCh = jmin((int) spec.numChannels, (int) abIn.getNumChannels());
 
             int startIndex, blockSize1, blockSize2;

@@ -114,7 +114,7 @@ private:
     float slope;
     float makeUpGain;
 
-    std::atomic<float> maxInputLevel {-std::numeric_limits<double>::infinity()};
+    std::atomic<float> maxInputLevel {-std::numeric_limits<float>::infinity()};
     std::atomic<float> maxGainReduction {0};
 
     //state variable

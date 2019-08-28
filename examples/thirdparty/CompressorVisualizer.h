@@ -50,7 +50,7 @@ class CompressorVisualizer    : public Component
 
             grid.clear();
 
-            for (int val = - step; val > minDecibels; val -= step)
+            for (float val = - step; val > minDecibels; val -= step)
             {
                 // add horizontal line
                 grid.startNewSubPath (minDecibels, val);
@@ -68,7 +68,7 @@ class CompressorVisualizer    : public Component
             g.strokePath (grid, PathStrokeType (0.5f), contentTransform);
 
             g.setColour (Colours::white.withMultipliedAlpha (0.5f));
-            g.drawRect (contentBounds, 1.0f);
+            g.drawRect (contentBounds, 1);
 
             Line<float> unity (minDecibels + 0.5f, minDecibels  + 0.5f, -0.5f, -0.5f);
             unity.applyTransform(contentTransform);
@@ -81,27 +81,27 @@ class CompressorVisualizer    : public Component
             g.setColour (Colours::white);
             g.setFont (10.0f);
 
-            const float step = 10.0f;
+            const int step = 10;
             float xPos = 0.0f;
             float yPos = 0.0f;
             contentTransform.transformPoint(xPos, yPos);
 
-            g.drawText ("0 dB", xPos + 1, yPos - 12, 18, 12.0f, Justification::left, false);
+            g.drawText ("0 dB", static_cast<int> (xPos) + 1, static_cast<int> (yPos) - 12, 18, 12, Justification::left, false);
 
             for (int val = - step; val >= minDecibels; val -= step)
             {
                 // vertical labels
-                float xPos = 0.0f;
-                float yPos = val;
+                xPos = 0.0f;
+                yPos = static_cast<float> (val);
                 contentTransform.transformPoint(xPos, yPos);
-                g.drawText (String (val), xPos + 4, yPos - 6, 18, 12.0f, Justification::left, false);
+                g.drawText (String (val), static_cast<int> (xPos) + 4, static_cast<int> (yPos) - 6, 18, 12, Justification::left, false);
 
 
                 // horizontal labels
-                xPos = val;
+                xPos = static_cast<float> (val);
                 yPos = 0.0f;
                 contentTransform.transformPoint(xPos, yPos);
-                g.drawText (String (val), xPos - 9, yPos - 12, 18, 12.0f, Justification::centred, false);
+                g.drawText (String (val), static_cast<int> (xPos) - 9, static_cast<int> (yPos) - 12, 18, 12, Justification::centred, false);
             }
         }
 
@@ -115,9 +115,9 @@ class CompressorVisualizer    : public Component
             contentBounds = bounds;
 
             contentTransform = AffineTransform::fromTargetPoints (
-                Point<int> (minDecibels, minDecibels), contentBounds.getBottomLeft(),
-                Point<int> (0, 0), contentBounds.getTopRight(),
-                Point<int> (0, minDecibels), contentBounds.getBottomRight());
+                Point<float> (minDecibels, minDecibels), contentBounds.getBottomLeft().toFloat(),
+                Point<float> (0, 0), contentBounds.getTopRight().toFloat(),
+                Point<float> (0, minDecibels), contentBounds.getBottomRight().toFloat());
 
         }
 
@@ -271,7 +271,7 @@ public:
         const Rectangle<int> contentBounds = gridAndLabels.getBoundsForContent();
         transform = gridAndLabels.getTransformForContent();
 
-        characteristic.setTransformForContent (transform.translated (-contentBounds.getX(), -contentBounds.getY()));
+        characteristic.setTransformForContent (transform.translated (static_cast<float> (-contentBounds.getX()), static_cast<float> (-contentBounds.getY())));
         characteristic.setBounds (contentBounds);
     }
   

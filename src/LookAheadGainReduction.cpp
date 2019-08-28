@@ -31,12 +31,12 @@ void LookAheadGainReduction::setDelayTime (float delayTimeInSeconds)
         prepare (sampleRate, blockSize);
 }
 
-void LookAheadGainReduction::prepare (const double sampleRate, const int blockSize)
+void LookAheadGainReduction::prepare (const double newSampleRate, const int newBlockSize)
 {
-    this->sampleRate = sampleRate;
-    this->blockSize = blockSize;
+    sampleRate = newSampleRate;
+    blockSize = newBlockSize;
 
-    delayInSamples = delay * sampleRate;
+    delayInSamples = static_cast<int> (delay * sampleRate);
 
     buffer.resize (blockSize + delayInSamples);
     std::fill (buffer.begin(), buffer.end(), 0.0f);
@@ -71,7 +71,7 @@ void LookAheadGainReduction::process()
     // last pushed samples
     int startIndex = writePosition - 1;
     if (startIndex < 0)
-        startIndex += buffer.size();
+        startIndex += static_cast<int> (buffer.size());
 
     int size1, size2;
 

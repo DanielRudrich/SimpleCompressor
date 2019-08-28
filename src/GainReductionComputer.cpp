@@ -32,9 +32,9 @@ GainReductionComputer::GainReductionComputer()
     reset();
 }
 
-void GainReductionComputer::prepare (const double sampleRate)
+void GainReductionComputer::prepare (const double newSampleRate)
 {
-    this->sampleRate = sampleRate;
+    sampleRate = newSampleRate;
 
     alphaAttack = 1.0f - timeToGain (attackTime);
     alphaRelease = 1.0f - timeToGain (releaseTime);
@@ -54,7 +54,7 @@ void GainReductionComputer::setReleaseTime (const float releaseTimeInSeconds)
 
 const float GainReductionComputer::timeToGain (const float timeInSeconds)
 {
-    return std::exp (-1.0f / (sampleRate * timeInSeconds));
+    return std::exp (-1.0f / (static_cast<float> (sampleRate) * timeInSeconds));
 }
 
 void GainReductionComputer::setKnee (const float kneeInDecibels)
@@ -91,7 +91,7 @@ inline const float GainReductionComputer::applyCharacteristicToOverShoot (const 
 
 void GainReductionComputer::computeGainInDecibelsFromSidechainSignal (const float* sideChainSignal, float* destination, const int numSamples)
 {
-    maxInputLevel = -std::numeric_limits<double>::infinity();
+    maxInputLevel = -std::numeric_limits<float>::infinity();
     maxGainReduction = 0.0f;
 
     for (int i = 0; i < numSamples; ++i)
