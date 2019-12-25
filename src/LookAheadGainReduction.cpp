@@ -66,43 +66,65 @@ void LookAheadGainReduction::pushSamples (const float* src, const int numSamples
 
 void LookAheadGainReduction::process()
 {
+    /** The basic idea here is to look for high gain-reduction values in the signal, and apply a fade which starts exactly  `delayInSamples` many samples before that value appears. Depending on the value itself, the slope of the fade will vary.
+
+     Some things to note:
+        - as the samples are gain-reduction values in decibel, we actually look for negative peaks or local minima.
+        - it's easier for us to time-reverse our search, so we start with the last sample
+        - once we find a minimum, we calculate the slope, which will be called `step`
+        - with that slope, we can calculate the next value of our fade-in `nextGainReductionValue`
+        - once a value in the buffer is below our fade-in value, we found a new minimum, which might not be as deep as the previous one, but as it comes in earlier, it needs more attention, so we update our fade-in slope
+        - our buffer is a ring-buffer which makes things a little bit messy
+     */
+
+
+    // As we don't know any samples of the future, yet, we assume we don't have to apply a fade-in right now, and initialize both `nextGainReductionValue` and step (slope of the fade-in) with zero.
     float nextGainReductionValue = 0.0f;
     float step = 0.0f;
 
-    // last pushed samples
-    int startIndex = writePosition - 1;
-    if (startIndex < 0)
-        startIndex += static_cast<int> (buffer.size());
 
+    // Get the position of the last sample in the buffer, which is the sample right before our new write position.
+    int index = writePosition - 1;
+    if (index < 0) // in case it's negative...
+        index += static_cast<int> (buffer.size()); // ... add the buffersize so we wrap around.
+
+    // == FIRST STEP: Process all recently pushed samples.
+
+    // We want to process all `lastPushedSamples` many samples, so let's find out, how many we can process in a first run before we have to wrap around our `index` variable (ring-buffer).
     int size1, size2;
+    getProcessPositions (index, lastPushedSamples, size1, size2);
 
-    getProcessPositions (startIndex, lastPushedSamples, size1, size2);
-
+    // first run
     for (int i = 0; i < size1; ++i)
     {
-        float smpl = buffer[startIndex];
+        const float smpl = buffer[index];
 
-        if (smpl > nextGainReductionValue)
+        if (smpl > nextGainReductionValue) // in case the sample is above our ramp...
         {
-            buffer[startIndex] = nextGainReductionValue;
-            nextGainReductionValue += step;
+            buffer[index] = nextGainReductionValue; // ... replace it with the current ramp value
+            nextGainReductionValue += step; // and update the next ramp value
         }
-        else
+        else // otherwise... (new peak)
         {
-            step = - smpl / delayInSamples;
-            nextGainReductionValue = smpl + step;
+            step = - smpl / delayInSamples; // calculate the new slope
+            nextGainReductionValue = smpl + step; // and also the new ramp value
         }
-        --startIndex;
+        --index;
     }
-    if (size2 > 0)
+
+    // second run
+    if (size2 > 0) // in case we have some samples left for the second run
     {
-        startIndex = static_cast<int> (buffer.size()) - 1;
+        index = static_cast<int> (buffer.size()) - 1; // wrap around: start from the last sample of the buffer
+
+        // exactly the same procedure as before... I guess I could have written that better...
         for (int i = 0; i < size2; ++i)
         {
-            float smpl = buffer[startIndex];
+            const float smpl = buffer[index];
+
             if (smpl > nextGainReductionValue)
             {
-                buffer[startIndex] = nextGainReductionValue;
+                buffer[index] = nextGainReductionValue;
                 nextGainReductionValue += step;
             }
             else
@@ -110,47 +132,62 @@ void LookAheadGainReduction::process()
                 step = - smpl / delayInSamples;
                 nextGainReductionValue = smpl + step;
             }
-            --startIndex;
+            --index;
         }
     }
 
-    if (startIndex < 0)
-        startIndex = static_cast<int> (buffer.size()) - 1;
+    /*
+     At this point, we have processed all the new gain-reduction values. For this, we actually don't need a delay/lookahead at all.
+     !! However, we are not finished, yet !!
+     What if the first pushed sample has such a high gain-reduction value, that itself needs a fade-in? So we have to apply a gain-ramp even further into the past. And that is exactly the reason why we need lookahead, why we need to buffer our signal for a short amount of time: so we can apply that gain ramp for the first handful of gain-reduction samples.
+     */
 
-    getProcessPositions (startIndex, delayInSamples, size1, size2);
+    if (index < 0) // it's possible the index is exactly -1
+        index = static_cast<int> (buffer.size()) - 1; // so let's take care of that
+
+    /*
+     This time we only need to check `delayInSamples` many samples.
+     And there's another cool thing!
+        We know that the samples have been processed already, so in case one of the samples is below our ramp value, that's the new minimum, which has been faded-in already! So what we do is hit the break, and call it a day!
+     */
+    getProcessPositions (index, delayInSamples, size1, size2);
     bool breakWasUsed = false;
 
-    for (int i = 0; i < size1; ++i)
+    // first run
+    for (int i = 0; i < size1; ++i) // we iterate over the first size1 samples
     {
-        float smpl = buffer[startIndex];
-        if (smpl > nextGainReductionValue)
+        const float smpl = buffer[index];
+
+        if (smpl > nextGainReductionValue) // in case the sample is above our ramp...
         {
-            buffer[startIndex] = nextGainReductionValue;
-            nextGainReductionValue += step;
+            buffer[index] = nextGainReductionValue; // ... replace it with the current ramp value
+            nextGainReductionValue += step; // and update the next ramp value
         }
-        else
+        else // otherwise... JACKPOT! Nothing left to do here!
         {
-            breakWasUsed = true;
+            breakWasUsed = true; // let the guys know we are finished
             break;
         }
-        --startIndex;
+        --index;
     }
-    if (! breakWasUsed && size2 > 0)
+
+    // second run
+    if (! breakWasUsed && size2 > 0) // is there still some work to do?
     {
-        startIndex = static_cast<int> (buffer.size()) - 1;
+        index = static_cast<int> (buffer.size()) - 1; // wrap around (ring-buffer)
         for (int i = 0; i < size2; ++i)
         {
-            float smpl = buffer[startIndex];
-            if (smpl > nextGainReductionValue)
+            const float smpl = buffer[index];
+
+            // same as before
+            if (smpl > nextGainReductionValue) // in case the sample is above our ramp...
             {
-                buffer[startIndex] = nextGainReductionValue;
-                nextGainReductionValue += step;
+                buffer[index] = nextGainReductionValue; // ... replace it with the current ramp value
+                nextGainReductionValue += step; // and update the next ramp value
             }
-            else
-            {
+            else // otherwise... already processed -> byebye!
                 break;
-            }
-            --startIndex;
+            --index;
         }
     }
 }
